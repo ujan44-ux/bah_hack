@@ -24,3 +24,24 @@ Why it's fast the three key decisions:
 What every layer does:
 The controller layer is intentionally thin  it only routes, validates, and delegates. The service layer holds all logic: GraphService and HeatmapService are pure cache wrappers, while AblationService contains the full JGraphT simulation pipeline (build graph, remove nodes, sample path lengths, find affected routes, count components). ScenarioController composes both services it asks HeatmapService for the top-N nodes, then passes them to AblationService as a normal ablation request, so scenarios get caching for free.
 The ZGC GC flag is important here it keeps GC pauses under 1ms even as the graph objects are large, so the ~2ms cache hit latency isn't blown up by a GC pause mid response.
+
+
+```mermaid
+flowchart TD
+    A[HTTP Request] --> B[WebFlux Router]
+    B --> C[GraphController]
+    C --> D[GraphService]
+    D --> E{Caffeine Cache Hit?}
+
+    E -- Yes --> F[~2ms → Mono<GeoJSON> file]
+    E -- No --> G[~30ms Cold File Read → Populate Cache]
+
+    %% Styling
+    style A fill:#ffcc00,stroke:#333,stroke-width:2px
+    style B fill:#66ccff,stroke:#333,stroke-width:2px
+    style C fill:#99ff99,stroke:#333,stroke-width:2px
+    style D fill:#ff9966,stroke:#333,stroke-width:2px
+    style E fill:#cc99ff,stroke:#333,stroke-width:2px
+    style F fill:#00cc99,stroke:#333,stroke-width:2px
+    style G fill:#ff6666,stroke:#333,stroke-width:2px
+
