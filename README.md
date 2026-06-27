@@ -36,12 +36,12 @@ flowchart TD
     E -- Yes --> F[~2ms → Mono<GeoJSON> file]
     E -- No --> G[~30ms Cold File Read → Populate Cache]
 
-    %% Styling
-    style A fill:#ffcc00,stroke:#333,stroke-width:2px
-    style B fill:#66ccff,stroke:#333,stroke-width:2px
-    style C fill:#99ff99,stroke:#333,stroke-width:2px
-    style D fill:#ff9966,stroke:#333,stroke-width:2px
-    style E fill:#cc99ff,stroke:#333,stroke-width:2px
-    style F fill:#00cc99,stroke:#333,stroke-width:2px
-    style G fill:#ff6666,stroke:#333,stroke-width:2px
+    %% Styling with better contrast
+    style A fill:#f9f871,stroke:#333,stroke-width:2px,color:#000
+    style B fill:#4dabf7,stroke:#1c1c1c,stroke-width:2px,color:#fff
+    style C fill:#51cf66,stroke:#1c1c1c,stroke-width:2px,color:#fff
+    style D fill:#ff922b,stroke:#1c1c1c,stroke-width:2px,color:#fff
+    style E fill:#845ef7,stroke:#1c1c1c,stroke-width:2px,color:#fff
+    style F fill:#20c997,stroke:#1c1c1c,stroke-width:2px,color:#fff
+    style G fill:#fa5252,stroke:#1c1c1c,stroke-width:2px,color:#fff
 
