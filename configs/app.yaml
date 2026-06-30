@@ -1,0 +1,40 @@
+# Backend application configuration. Overridable by env vars (prefix RR_).
+
+api:
+  host: 0.0.0.0
+  port: 8000
+  cors_origins: ["http://localhost:3000"]
+  api_version: v1
+  max_upload_mb: 512
+
+worker:
+  broker_url: redis://redis:6379/0
+  result_backend: redis://redis:6379/1
+  concurrency: 2
+  gpu_semaphore: 1          # max concurrent GPU inferences (avoid OOM)
+
+cache:
+  redis_url: redis://redis:6379/2
+  graph_ttl_s: 7200
+  sim_ttl_s: 3600
+  lru_max_graphs: 4         # in-process L1 graph cache size
+
+storage:
+  backend: minio           # minio | s3 | local
+  endpoint: http://minio:9000
+  bucket: route-resilience
+  access_key: ${RR_S3_ACCESS_KEY}
+  secret_key: ${RR_S3_SECRET_KEY}
+
+db:
+  url: sqlite:///./route_resilience.db   # swap to postgresql+psycopg://... for PostGIS
+
+logging:
+  level: INFO
+  json: true
+  correlation_header: X-Correlation-ID
+
+model:
+  checkpoint: artifacts/models/toposam_rr_best.pt
+  device: auto             # auto | cuda | cpu
+  onnx_fallback: artifacts/models/toposam_rr.onnx

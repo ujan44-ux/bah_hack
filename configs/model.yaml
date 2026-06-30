@@ -1,0 +1,55 @@
+# TopoSAM-RR model + training configuration (single mid GPU profile).
+
+model:
+  name: toposam_rr
+  encoder:
+    backbone: sam_vit_b        # sam_vit_b | sam2_hiera_t | convnext_tiny | smp_efficientnet_b3
+    weights: pretrained        # path or 'pretrained'
+    freeze: true               # freeze encoder (the core hackathon decision)
+    tap_blocks: [3, 6, 9]      # intermediate ViT blocks for pseudo multi-scale (f4,f8 + neck f16)
+  decoder:
+    type: fpn_attn
+    channels: [256, 128, 64]   # p16, p8, p4 widths
+    norm: groupnorm
+    activation: gelu
+    attention_gate: true
+  heads:
+    road: {hidden: 64}
+    junction: {hidden: 64, gaussian_sigma: 3}
+
+loss:
+  road:
+    dice: 1.0
+    lovasz: 1.0
+    boundary: 0.5
+  junction_lambda: 0.5
+  junction_type: mse           # mse | focal_mse
+
+train:
+  tile_size: 512
+  overlap: 64
+  batch_size: 8
+  grad_accum: 2                # effective batch 16
+  amp: true
+  optimizer: adamw
+  lr: 3.0e-4
+  weight_decay: 1.0e-4
+  scheduler: cosine
+  warmup_steps: 500
+  max_steps: 20000
+  val_every: 500
+  early_stop_metric: apls_lite # checkpoint best by topology metric, not pixel IoU
+  augment:
+    flip: true
+    rot90: true
+    scale: [0.8, 1.2]
+    brightness_contrast: true
+    clahe: true
+    sim_occlusion: true        # random shadow polygons + coarse dropout (canopy) — KEY
+    occlusion_max_frac: 0.25
+
+inference:
+  amp: true
+  tta: false
+  seam_blend: cosine
+  threshold_export: false      # binarization happens in graph plane, not here

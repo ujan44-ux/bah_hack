@@ -1,0 +1,55 @@
+# Pipeline configuration — Stage 1-6 parameters.
+# Every value here participates in the artifact params_hash, so changing a
+# parameter produces a new cached artifact (reproducibility by construction).
+
+tiling:
+  size: 512          # tile edge in pixels
+  overlap: 64        # overlap to avoid seam artifacts at stitch time
+  pad_mode: reflect
+
+inference:
+  batch_size: 8
+  amp: true          # automatic mixed precision
+  tta: false         # test-time augmentation (flip/rotate) — on for final runs
+  seam_blend: cosine # cosine feather when stitching overlapping tiles
+
+binarize:
+  method: hysteresis # high/low double threshold (see math.md)
+  high: 0.55
+  low: 0.30
+  min_object_px: 32  # remove speckle
+  close_kernel: 3    # morphological closing to bridge tiny gaps
+
+skeleton:
+  method: zhang_suen        # or 'medial_axis'
+  junction_guided: true     # snap/seed skeleton at predicted junctions
+  prune_spur_len: 8         # remove short dangling spurs (px)
+
+vectorize:
+  simplify_tol: 2.0         # Douglas-Peucker tolerance (px) on edge polylines
+  min_edge_len: 5
+
+healing:
+  enabled: true
+  max_gap_px: 40            # only consider endpoint pairs within this radius
+  weights:                  # Connection Score component weights (see graph_engine.md)
+    distance: 1.0
+    angle: 1.0
+    seg_confidence: 1.0
+    junction_confidence: 0.5
+  angle_tolerance_deg: 35
+  fallback: mst             # if scoring degenerate, fall back to plain MST
+
+attributes:
+  pixel_size_m: 0.5         # ground sampling distance (meters/pixel)
+  base_speed_kmh: 40        # default road speed for travel_cost
+
+analytics:
+  centrality: betweenness   # betweenness | edge_betweenness | both
+  approx_k: 500             # sample k sources for approximate betweenness on large graphs
+  community: louvain
+  criticality_weights:
+    betweenness: 0.4
+    bridge: 0.3
+    articulation: 0.2
+    degree: 0.1
